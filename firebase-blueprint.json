@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information and settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "institution": { "type": "string" },
+        "course": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "name"]
+    },
+    "AcademicWork": {
+      "title": "Academic Work",
+      "description": "Information about a generated academic work",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "studentName": { "type": "string" },
+        "institution": { "type": "string" },
+        "course": { "type": "string" },
+        "professor": { "type": "string" },
+        "academicLevel": { "type": "string", "enum": ["Ensino Médio", "Universidade"] },
+        "norms": { "type": "string", "enum": ["APA", "ABNT", "MLA"] },
+        "pages": { "type": "integer" },
+        "logoUrl": { "type": "string" },
+        "content": {
+          "type": "object",
+          "properties": {
+            "introduction": { "type": "string" },
+            "development": { "type": "string" },
+            "conclusion": { "type": "string" },
+            "references": { "type": "string" }
+          }
+        },
+        "ownerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "generated", "published"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "ownerId", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles"
+    },
+    "/academicWorks/{workId}": {
+      "schema": "AcademicWork",
+      "description": "Collection of generated academic works"
+    }
+  }
+}

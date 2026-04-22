@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Functions
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // User Validation
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'name']) 
+        && data.uid == request.auth.uid 
+        && data.name is string && data.name.size() <= 200
+        && data.email is string && data.email.size() <= 200;
+    }
+
+    // Academic Work Validation
+    function isValidWork(data) {
+      return data.keys().hasAll(['title', 'ownerId', 'status'])
+        && data.ownerId == request.auth.uid
+        && data.title is string && data.title.size() <= 500
+        && data.status in ['draft', 'generated', 'published']
+        && (data.academicLevel == null || data.academicLevel in ['Ensino Médio', 'Universidade'])
+        && (data.norms == null || data.norms in ['APA', 'ABNT', 'MLA']);
+    }
+
+    // --- Collections ---
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow get: if isSignedIn(); // Allow reading profile info for reference
+      allow list: if false; // No public user listing
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'institution', 'course'])
+      );
+    }
+
+    // 2. Academic Works Collection
+    match /academicWorks/{workId} {
+      allow get: if isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidWork(incoming()) && incoming().ownerId == request.auth.uid;
+      allow update: if isOwner(existing().ownerId) && isValidWork(incoming()) && (
+        // Action: Update content
+        incoming().diff(existing()).affectedKeys().hasAll(['updatedAt'])
+      );
+      allow delete: if isOwner(existing().ownerId);
+    }
+  }
+}
