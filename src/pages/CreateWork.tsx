@@ -8,13 +8,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import BrandLogo from '../components/BrandLogo';
 import { ai, MODELS } from '../lib/gemini';
 import { AcademicWork } from '../types';
-import { ChevronLeft, Sparkles, Wand2, Info, GraduationCap, Building2, User, UserCheck, BookOpen, Layers, FileType, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { ChevronLeft, Sparkles, Wand2, Info, GraduationCap, Building2, User, UserCheck, BookOpen, Layers, FileType, Image as ImageIcon, Loader2, LogOut } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function CreateWork() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -89,11 +90,25 @@ export default function CreateWork() {
 
   return (
     <div className="min-h-screen mesh-bg pb-20 text-slate-200">
-      <header className="glass border-b border-white/10 h-16 flex items-center px-4 sticky top-0 z-10">
-        <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-white/10 rounded-lg mr-4 transition-colors text-slate-400">
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <span className="font-display font-bold text-white">Criar Novo Trabalho</span>
+      <header className="glass border-b border-white/10 h-16 flex items-center px-4 sticky top-0 z-10 justify-between">
+        <div className="flex items-center">
+          <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-white/10 rounded-lg mr-2 transition-colors text-slate-400 group flex items-center gap-2">
+            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest text-slate-500 group-hover:text-white transition-colors">Voltar ao Painel</span>
+          </button>
+          <div className="hidden sm:block h-6 w-[1px] bg-white/10 mx-2" />
+          <span className="font-display font-bold text-white ml-2">Criar Novo Trabalho</span>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 opacity-100 transition-opacity pr-2 border-r border-white/10 hidden sm:flex">
+             <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">APP SYSTEM</span>
+             <BrandLogo size="sm" />
+          </div>
+          <button onClick={() => signOut()} className="p-2 text-slate-500 hover:text-red-400 transition-colors ml-2" title="Sair da Conta">
+             <LogOut className="w-5 h-5" />
+          </button>
+        </div>
       </header>
 
       <div className="max-w-3xl mx-auto px-4 mt-8">
@@ -176,10 +191,10 @@ export default function CreateWork() {
              </div>
 
              {/* Disclaimer */}
-             <div className="flex gap-4 p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20 mt-4">
-                <Info className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-200/70 leading-relaxed">
-                   <strong>AVISO ÉTICO:</strong> Esta ferramenta gera conteúdos originais. O plágio é uma infracção grave. Use a IA para estruturar e inspirar, mas adicione sua própria análise.
+             <div className="flex gap-4 p-4 bg-white/5 rounded-2xl border border-white/10 mt-4 backdrop-blur-sm shadow-xl">
+                <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-white leading-relaxed font-medium">
+                   <strong className="text-blue-400">AVISO ÉTICO:</strong> Esta ferramenta gera conteúdos originais. O plágio é uma infracção grave. Use a IA para estruturar e inspirar, mas adicione sua própria análise.
                 </p>
              </div>
 

@@ -7,8 +7,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import BrandLogo from '../components/BrandLogo';
+import { useAuth } from '../context/AuthContext';
 import { AcademicWork } from '../types';
-import { ChevronLeft, Save, Eye, FileOutput, CheckCircle, Loader2, Edit3, AlignLeft, ListOrdered, Share2, Sparkles } from 'lucide-react';
+import { ChevronLeft, Save, Eye, FileOutput, CheckCircle, Loader2, Edit3, AlignLeft, ListOrdered, Share2, Sparkles, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 
@@ -19,6 +21,7 @@ function ensureString(val: any): string {
 }
 
 export default function Editor() {
+  const { user, signOut } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [work, setWork] = useState<AcademicWork | null>(null);
@@ -90,9 +93,11 @@ export default function Editor() {
       {/* Editor Header */}
       <header className="glass border-b border-white/10 h-16 flex items-center justify-between px-4 sticky top-0 z-20">
         <div className="flex items-center gap-4 flex-1">
-          <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400">
-            <ChevronLeft className="w-5 h-5" />
+          <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 group flex items-center gap-2">
+            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest text-slate-500 group-hover:text-white transition-colors">Voltar</span>
           </button>
+          <div className="hidden sm:block h-6 w-[1px] bg-white/10 mx-2" />
           <div className="hidden sm:block">
              <h1 className="font-display font-bold truncate text-sm max-w-md text-white">{work.title}</h1>
              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none mt-1">{work.norms} • {work.academicLevel}</p>
@@ -100,6 +105,10 @@ export default function Editor() {
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2 mr-4 opacity-100 transition-opacity px-3 py-1 bg-white/5 rounded-full border border-white/10">
+            <BrandLogo size="sm" className="scale-75" />
+            <span className="text-[7px] text-slate-300 font-bold uppercase tracking-widest whitespace-nowrap">AcadPDF Intelligence</span>
+          </div>
           <button onClick={handleSave} disabled={saving} className="btn btn-secondary h-10 px-4 text-xs font-bold border-white/5">
             {saving ? <Loader2 className="w-4 h-4 animate-spin text-blue-400" /> : <Save className="w-4 h-4 text-slate-500" />}
             <span className="hidden sm:inline">Salvar</span>
@@ -107,6 +116,10 @@ export default function Editor() {
           <button onClick={handleExport} className="btn btn-primary h-10 px-4 text-xs">
             <Eye className="w-4 h-4" />
             <span className="hidden sm:inline">Visualizar e Exportar</span>
+          </button>
+          <div className="h-6 w-[1px] bg-white/10 mx-2" />
+          <button onClick={() => signOut()} className="p-2 text-slate-500 hover:text-red-400 transition-colors" title="Sair da Conta">
+             <LogOut className="w-5 h-5" />
           </button>
         </div>
       </header>

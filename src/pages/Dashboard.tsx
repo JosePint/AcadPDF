@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { AcademicWork } from '../types';
+import BrandLogo from '../components/BrandLogo';
 import { Plus, LayoutGrid, List, FileText, Clock, ChevronRight, GraduationCap, LogOut, MoreVertical, Search, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -48,19 +49,31 @@ export default function Dashboard() {
       <aside className="hidden md:flex flex-col w-64 glass m-4 mr-2 border border-white/10 rounded-2xl overflow-hidden">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg">
-              <GraduationCap className="w-6 h-6" />
+            <BrandLogo size="md" />
+            <div className="flex flex-col">
+              <span className="text-xl font-display font-bold text-white leading-none">AcadPDF <span className="text-blue-400">AI</span></span>
+              <span className="text-[7px] text-slate-500 uppercase tracking-tighter font-bold mt-1">SISTEMA INTELIGENTE</span>
             </div>
-            <span className="text-xl font-display font-bold text-white">AcadPDF <span className="text-blue-400">AI</span></span>
           </div>
           
           <nav className="space-y-1">
+            <SidebarLink icon={<LayoutGrid className="w-5 h-5" />} label="Página Inicial" onClick={() => navigate('/')} />
             <SidebarLink icon={<FileText className="w-5 h-5" />} label="Meus Trabalhos" active />
             <SidebarLink icon={<Clock className="w-5 h-5" />} label="Recentes" />
+            <div className="pt-4 mt-4 border-t border-white/5">
+              <SidebarLink icon={<LogOut className="w-5 h-5" />} label="Sair da Conta" onClick={() => signOut()} />
+            </div>
           </nav>
         </div>
         
-        <div className="mt-auto p-4 border-t border-white/5">
+        <div className="mt-auto p-4 border-t border-white/5 space-y-4">
+          <div className="px-2">
+            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest leading-tight">
+              Criado por <span className="text-blue-400/80">José Alfredo Pinto</span><br />
+              CEO da DevMentor
+            </p>
+          </div>
+          
           <div className="flex items-center gap-3 p-2 group bg-white/5 rounded-xl border border-white/5">
             {user?.photoURL ? (
               <img src={user.photoURL} className="w-8 h-8 rounded-full" alt="" />
@@ -84,7 +97,12 @@ export default function Dashboard() {
       <main className="flex-1 flex flex-col m-4 ml-2 overflow-hidden">
         {/* Header */}
         <header className="glass p-4 rounded-2xl mb-4 border border-white/10 flex justify-between items-center">
-          <h1 className="text-xl font-display font-bold text-white px-2">Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <button onClick={() => navigate('/')} className="md:hidden p-2 text-slate-500 hover:text-white transition-colors">
+               <LayoutGrid className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-display font-bold text-white px-2">Dashboard</h1>
+          </div>
           <div className="flex items-center gap-4">
              <div className="hidden sm:flex items-center bg-slate-900/50 rounded-lg px-3 py-1.5 border border-white/5 focus-within:border-blue-500/50 transition-colors">
                 <Search className="w-4 h-4 text-slate-500" />
@@ -93,6 +111,9 @@ export default function Dashboard() {
              <button onClick={handleCreate} className="btn btn-primary h-10 px-4">
                 <Plus className="w-5 h-5" />
                 <span className="hidden sm:inline">Novo Trabalho</span>
+             </button>
+             <button onClick={() => signOut()} className="md:hidden p-2 text-slate-500 hover:text-red-400 transition-colors">
+                <LogOut className="w-5 h-5" />
              </button>
           </div>
         </header>
@@ -152,9 +173,12 @@ export default function Dashboard() {
   );
 }
 
-function SidebarLink({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
+function SidebarLink({ icon, label, active = false, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void }) {
   return (
-    <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${active ? 'active-link' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200'}`}>
+    <button 
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${active ? 'active-link' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200'}`}
+    >
       {icon}
       {label}
     </button>

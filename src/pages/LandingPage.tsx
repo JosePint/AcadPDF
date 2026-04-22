@@ -7,6 +7,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle } from '../lib/firebase';
 import { GraduationCap, FileText, Sparkles, ShieldAlert, ChevronRight, Layout, BookOpen, Download } from 'lucide-react';
+import BrandLogo from '../components/BrandLogo';
 import { motion } from 'motion/react';
 
 export default function LandingPage() {
@@ -22,24 +23,27 @@ export default function LandingPage() {
     }
   };
 
-  if (user) {
-    return <Navigate to="/dashboard" />;
-  }
-
   return (
     <div className="min-h-screen mesh-bg text-slate-200">
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg">
-              <GraduationCap className="w-6 h-6" />
+          <div className="flex items-center gap-3">
+            <BrandLogo size="md" />
+            <div className="flex flex-col">
+              <span className="text-xl font-display font-bold text-white leading-tight">AcadPDF <span className="text-blue-400">AI</span></span>
+              <span className="text-[7px] text-slate-500 uppercase tracking-tighter font-bold leading-none">Educação & Tecnologia</span>
             </div>
-            <span className="text-xl font-display font-bold text-white">AcadPDF <span className="text-blue-400">AI</span></span>
           </div>
-          <button onClick={handleLogin} className="btn btn-primary px-6">
-            Entrar
-          </button>
+          {user ? (
+            <button onClick={() => navigate('/dashboard')} className="btn btn-secondary px-6">
+              Ir para o Dashboard
+            </button>
+          ) : (
+            <button onClick={handleLogin} className="btn btn-primary px-6">
+              Entrar
+            </button>
+          )}
         </div>
       </nav>
 
@@ -64,10 +68,17 @@ export default function LandingPage() {
               desenvolvimento formal e referências bibliográficas reais seguindo normas APA, ABNT ou MLA.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button onClick={handleLogin} className="btn btn-primary text-lg px-8 py-4 w-full sm:w-auto">
-                Começar Agora Grátis
-                <ChevronRight className="w-5 h-5" />
-              </button>
+              {user ? (
+                <button onClick={() => navigate('/dashboard')} className="btn btn-primary text-lg px-8 py-4 w-full sm:w-auto">
+                  Aceder ao Meu Painel
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              ) : (
+                <button onClick={handleLogin} className="btn btn-primary text-lg px-8 py-4 w-full sm:w-auto">
+                  Começar Agora Grátis
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              )}
               <button className="btn btn-secondary text-lg px-8 py-4 w-full sm:w-auto">
                 Ver Exemplo
               </button>
@@ -119,19 +130,26 @@ export default function LandingPage() {
       {/* Anti-Plagiarism Notice */}
       <section className="py-12 border-t border-white/5 mb-10">
         <div className="max-w-3xl mx-auto px-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-amber-400/80 mb-4">
-              <ShieldAlert className="w-6 h-6" />
-              <span className="font-bold uppercase tracking-wider text-sm">Compromisso Ético</span>
+            <div className="flex items-center justify-center gap-2 text-white mb-4 bg-white/5 w-fit mx-auto px-4 py-1.5 rounded-full border border-white/10">
+              <ShieldAlert className="w-5 h-5 text-blue-400" />
+              <span className="font-bold uppercase tracking-wider text-[10px]">Compromisso Ético e Originalidade</span>
             </div>
-            <p className="text-slate-500 text-sm leading-relaxed italic">
+            <p className="text-white text-sm md:text-base leading-relaxed italic font-medium">
               "O AcadPDF AI é uma ferramenta de apoio à pesquisa e estruturação de ideias. Incentivamos o uso responsável da tecnologia. O plágio académico é uma infração grave; use o conteúdo gerado como base para sua própria investigação e aprendizagem."
             </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-10 border-t border-slate-100 italic text-slate-400 text-xs text-center">
-        &copy; {new Date().getFullYear()} AcadPDF AI. Todos os direitos reservados.
+      <footer className="py-12 border-t border-white/5 text-slate-500 text-xs text-center flex flex-col items-center gap-4">
+        <div className="flex items-center gap-2 opacity-50 grayscale hover:grayscale-0 transition-all">
+          <img src="https://ais-dev-kwmu4nddryvxmxasel6zau-536141470964.europe-west2.run.app/assets/input_file_0.png" alt="DevMentor" className="w-8 h-8" />
+          <span className="font-bold tracking-widest uppercase text-[10px]">DevMentor Apps & Design</span>
+        </div>
+        <p className="italic">
+          &copy; {new Date().getFullYear()} AcadPDF AI. <br />
+          <span className="text-blue-400 font-medium not-italic mt-1 inline-block">Criado por José Alfredo Pinto CEO da DevMentor</span>
+        </p>
       </footer>
     </div>
   );

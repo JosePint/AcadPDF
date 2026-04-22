@@ -7,8 +7,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import BrandLogo from '../components/BrandLogo';
+import { useAuth } from '../context/AuthContext';
 import { AcademicWork } from '../types';
-import { ChevronLeft, Download, Share2, Loader2, FileText, Printer, CheckCircle, GraduationCap } from 'lucide-react';
+import { ChevronLeft, Download, Share2, Loader2, FileText, Printer, CheckCircle, GraduationCap, LogOut } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import ReactMarkdown from 'react-markdown';
 
@@ -19,6 +21,7 @@ function ensureString(val: any): string {
 }
 
 export default function Preview() {
+  const { signOut } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [work, setWork] = useState<AcademicWork | null>(null);
@@ -151,13 +154,18 @@ export default function Preview() {
     <div className="min-h-screen flex flex-col mesh-bg text-slate-200">
       <header className="glass border-b border-white/10 h-16 flex items-center justify-between px-4 sticky top-0 z-20">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(`/edit/${id}`)} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400">
-            <ChevronLeft className="w-5 h-5" />
+          <button onClick={() => navigate(`/edit/${id}`)} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 group flex items-center gap-2">
+            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest text-slate-500 group-hover:text-white transition-colors">Voltar ao Editor</span>
           </button>
           <h1 className="font-display font-bold text-white hidden sm:inline">Visualização Final</h1>
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2 mr-4 opacity-100 transition-opacity px-3 py-1 bg-white/5 rounded-full border border-white/10">
+            <BrandLogo size="sm" className="scale-75" />
+            <span className="text-[7px] text-slate-300 font-bold uppercase tracking-widest whitespace-nowrap">AcadPDF AI Studio</span>
+          </div>
           <button onClick={shareWhatsApp} className="btn btn-secondary h-10 px-4 border-white/5">
             <Share2 className="w-4 h-4 text-green-400" />
             <span className="hidden sm:inline">WhatsApp</span>
@@ -165,6 +173,10 @@ export default function Preview() {
           <button onClick={generatePdf} className="btn btn-primary h-10 px-6">
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Baixar PDF Final</span>
+          </button>
+          <div className="h-6 w-[1px] bg-white/10 mx-2" />
+          <button onClick={() => signOut()} className="p-2 text-slate-500 hover:text-red-400 transition-colors" title="Sair da Conta">
+             <LogOut className="w-5 h-5" />
           </button>
         </div>
       </header>
