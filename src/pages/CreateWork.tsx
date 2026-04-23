@@ -7,17 +7,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../lib/firebase';
 import BrandLogo from '../components/BrandLogo';
 import { ai, MODELS } from '../lib/gemini';
 import { AcademicWork } from '../types';
-import { ChevronLeft, Sparkles, Wand2, Info, GraduationCap, Building2, User, UserCheck, BookOpen, Layers, FileType, Image as ImageIcon, Loader2, LogOut } from 'lucide-react';
+import { ChevronLeft, Sparkles, Wand2, Info, GraduationCap, Building2, User, UserCheck, BookOpen, Layers, FileType, Image as ImageIcon, Loader2, LogOut, CheckCircle2, XCircle } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useRef } from 'react';
 
 export default function CreateWork() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     studentName: user?.displayName || '',
@@ -33,6 +37,35 @@ export default function CreateWork() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validation: Type and Size
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, carregue um ficheiro de imagem válido (PNG ou JPG).');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('O ficheiro é demasiado grande. O limite é de 5MB.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const storageRef = ref(storage, `institution_logos/${user?.uid}_${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(snapshot.ref);
+      setFormData(prev => ({ ...prev, logoUrl: url }));
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      alert('Erro ao carregar o logótipo. Tente novamente.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const generateContent = async () => {
@@ -80,7 +113,10 @@ export default function CreateWork() {
 
       const docRef = await addDoc(collection(db, 'academicWorks'), newWork);
       navigate(`/edit/${docRef.id}`);
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.message?.includes('aborted') || error?.name === 'AbortError') {
+        return; // User navigated away or request was cancelled
+      }
       console.error('Error generating work:', error);
       alert('Ocorreu um erro ao gerar o trabalho. Por favor, tente novamente.');
     } finally {
@@ -181,13 +217,59 @@ export default function CreateWork() {
               />
             </div>
 
-             {/* Logo Upload Mockup */}
-             <div className="p-6 rounded-2xl border-2 border-dashed border-white/10 bg-white/5 flex flex-col items-center justify-center gap-2 group hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-pointer">
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-blue-400 group-hover:scale-110 transition-all border border-white/5 shadow-inner">
-                   <ImageIcon className="w-5 h-5" />
-                </div>
-                <span className="text-sm font-medium text-slate-400 group-hover:text-blue-400">Logo da Instituição (Opcional)</span>
-                <span className="text-[10px] text-slate-600 uppercase tracking-widest"> PNG ou JPG • Max 5MB</span>
+             {/* Logo Upload Section */}
+             <div 
+               onClick={() => fileInputRef.current?.click()}
+               className={`p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-2 group relative overflow-hidden ${
+                 formData.logoUrl 
+                   ? 'border-green-500/50 bg-green-500/5' 
+                   : 'border-white/10 bg-white/5 hover:border-blue-500/50 hover:bg-blue-500/5'
+               }`}
+             >
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleLogoUpload} 
+                  accept="image/*" 
+                  className="hidden" 
+                />
+                
+                {uploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                    <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Enviando...</span>
+                  </div>
+                ) : formData.logoUrl ? (
+                  <>
+                    <div className="w-16 h-16 rounded-xl border border-white/10 overflow-hidden shadow-lg mb-2 relative">
+                       <img src={formData.logoUrl} alt="Logo Preview" className="w-full h-full object-contain bg-white/10" />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <ImageIcon className="w-6 h-6 text-white" />
+                       </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-green-400">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span className="text-sm font-medium">Logótipo carregado com sucesso</span>
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFormData(prev => ({ ...prev, logoUrl: '' }));
+                      }}
+                      className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-widest mt-1 font-bold"
+                    >
+                      Remover
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-blue-400 group-hover:scale-110 transition-all border border-white/5 shadow-inner">
+                       <ImageIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-400 group-hover:text-blue-400">Logo da Instituição (Opcional)</span>
+                    <span className="text-[10px] text-slate-600 uppercase tracking-widest"> PNG ou JPG • Max 5MB</span>
+                  </>
+                )}
              </div>
 
              {/* Disclaimer */}

@@ -47,7 +47,7 @@ export default function Preview() {
     fetchWork();
   }, [id]);
 
-  const generatePdf = () => {
+  const generatePdf = async () => {
     if (!work) return;
 
     const doc = new jsPDF({
@@ -59,6 +59,16 @@ export default function Preview() {
     const margin = 20;
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+
+    // 0. Logo handling
+    if (work.logoUrl) {
+      try {
+        // Simple attempt to add image
+        doc.addImage(work.logoUrl, 'PNG', pageWidth / 2 - 15, 30, 30, 30);
+      } catch (e) {
+        console.warn('Could not add logo to PDF due to CORS or image format', e);
+      }
+    }
 
     // 1. Cover Page
     doc.setFont('times', 'bold');
@@ -145,6 +155,15 @@ export default function Preview() {
           properties: {},
           children: [
             // Cover Page
+            ...(work.logoUrl ? [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({ text: "LOGÓTIPO DA INSTITUIÇÃO", size: 16, color: "888888" }),
+                ],
+                spacing: { after: 500 },
+              })
+            ] : []),
             new Paragraph({
               alignment: AlignmentType.CENTER,
               children: [
@@ -342,9 +361,17 @@ export default function Preview() {
              <div className="absolute top-10 right-10 opacity-20 select-none text-slate-200">
                 <GraduationCap className="w-20 h-20" />
              </div>
-             <div className="w-16 h-16 rounded-xl bg-slate-50 mb-12 flex items-center justify-center text-slate-300 border-2 border-slate-100 font-bold text-xl">
-                {work.institution.charAt(0).toUpperCase()}
-             </div>
+             
+             {work.logoUrl ? (
+               <div className="w-32 h-32 mb-8 flex items-center justify-center overflow-hidden">
+                  <img src={work.logoUrl} alt="Institution Logo" className="max-w-full max-h-full object-contain" />
+               </div>
+             ) : (
+               <div className="w-16 h-16 rounded-xl bg-slate-50 mb-12 flex items-center justify-center text-slate-300 border-2 border-slate-100 font-bold text-xl">
+                  {work.institution.charAt(0).toUpperCase()}
+               </div>
+             )}
+             
              <p className="text-base font-bold mb-16 tracking-[0.2em]">{work.institution.toUpperCase()}</p>
              <p className="text-xl font-bold mb-32 tracking-wider">{work.studentName.toUpperCase()}</p>
              <div className="py-16 border-y-2 border-slate-900 w-full mb-32 relative">
