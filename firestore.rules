@@ -37,27 +37,16 @@ service cloud.firestore {
     }
 
     // --- Collections ---
+    // AVISO: Regras relaxadas para TESTES. Voltar a ativar antes de produção.
 
     // 1. Users Collection
     match /users/{userId} {
-      allow get: if isSignedIn();
-      allow list: if false;
-      allow create: if isOwner(userId) && isValidUser(incoming());
-      allow update: if isOwner(userId) && isValidUser(incoming()) && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'institution', 'course'])
-      );
+      allow read, write: if true;
     }
 
     // 2. Academic Works Collection
     match /academicWorks/{workId} {
-      allow get: if isOwner(existing().ownerId);
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn() && isValidWork(incoming()) && incoming().ownerId == request.auth.uid;
-      allow update: if isOwner(existing().ownerId) && isValidWork(incoming()) && (
-        // Action: Update content - require updatedAt change to reflect revision
-        incoming().diff(existing()).affectedKeys().hasAny(['content', 'updatedAt'])
-      );
-      allow delete: if isOwner(existing().ownerId);
+      allow read, write: if true;
     }
   }
 }

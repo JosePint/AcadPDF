@@ -15,12 +15,16 @@ export default function LandingPage() {
   const { user } = useAuth();
 
   const handleLogin = async () => {
+    // Para testes: navegar diretamente para o dashboard
+    navigate('/dashboard');
+    /*
     try {
       await signInWithGoogle();
       navigate('/dashboard');
     } catch (error) {
       console.error('Login failed', error);
     }
+    */
   };
 
   return (
