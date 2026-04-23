@@ -43,10 +43,12 @@ export const signInWithGoogle = async () => {
 // Validate Connection to Firestore
 async function testConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration.");
+    const testDoc = await getDocFromServer(doc(db, 'test', 'connection'));
+    console.log("Firebase Connection: OK", testDoc.exists() ? "(Doc exists)" : "(Doc not found, but accessible)");
+  } catch (error: any) {
+    console.warn("Firebase Connection Warning:", error.message);
+    if (error.message?.includes('offline') || error.message?.includes('permission-denied') || error.message?.includes('not-found')) {
+       console.error("Please verify your Firebase Project configuration and Firestore Database setup.");
     }
   }
 }
