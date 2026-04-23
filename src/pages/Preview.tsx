@@ -12,6 +12,8 @@ import { useAuth } from '../context/AuthContext';
 import { AcademicWork } from '../types';
 import { ChevronLeft, Download, Share2, Loader2, FileText, Printer, CheckCircle, GraduationCap, LogOut } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } from 'docx';
+import { saveAs } from 'file-saver';
 import ReactMarkdown from 'react-markdown';
 
 function ensureString(val: any): string {
@@ -134,6 +136,133 @@ export default function Preview() {
     doc.save(`${work.title.replace(/\s+/g, '_')}_AcadPDF.pdf`);
   };
 
+  const generateDocx = async () => {
+    if (!work) return;
+
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: [
+            // Cover Page
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: work.institution.toUpperCase(), bold: true, size: 28 }),
+              ],
+              spacing: { after: 1000 },
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: work.studentName.toUpperCase(), bold: true, size: 32 }),
+              ],
+              spacing: { after: 2000 },
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: work.title.toUpperCase(), bold: true, size: 36 }),
+              ],
+              spacing: { after: 4000 },
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: `Curso: ${work.course}`, size: 24 }),
+              ],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: `Professor: ${work.professor}`, size: 24 }),
+              ],
+              spacing: { after: 2000 },
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: `Nível de Ensino: ${work.academicLevel}`, size: 24 }),
+              ],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: `Normas: ${work.norms}`, size: 24 }),
+              ],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({ text: new Date().getFullYear().toString(), size: 24 }),
+              ],
+              spacing: { before: 2000 },
+            }),
+
+            // Break to Next Page
+            new Paragraph({ text: "", pageBreakBefore: true }),
+
+            // Table of Contents (Simplified)
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              heading: HeadingLevel.HEADING_1,
+              children: [new TextRun({ text: "ÍNDICE", bold: true })],
+              spacing: { after: 400 },
+            }),
+            new Paragraph({ children: [new TextRun({ text: "1. Introdução" })] }),
+            new Paragraph({ children: [new TextRun({ text: "2. Desenvolvimento" })] }),
+            new Paragraph({ children: [new TextRun({ text: "3. Conclusão" })] }),
+            new Paragraph({ children: [new TextRun({ text: "4. Referências Bibliográficas" })] }),
+
+            // Sections
+            new Paragraph({ text: "", pageBreakBefore: true }),
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              children: [new TextRun({ text: "1. INTRODUÇÃO", bold: true })],
+              spacing: { after: 200 },
+            }),
+            new Paragraph({
+              children: [new TextRun(ensureString(work.content.introduction))],
+            }),
+
+            new Paragraph({ text: "", pageBreakBefore: true }),
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              children: [new TextRun({ text: "2. DESENVOLVIMENTO", bold: true })],
+              spacing: { after: 200 },
+            }),
+            new Paragraph({
+              children: [new TextRun(ensureString(work.content.development))],
+            }),
+
+            new Paragraph({ text: "", pageBreakBefore: true }),
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              children: [new TextRun({ text: "3. CONCLUSÃO", bold: true })],
+              spacing: { after: 200 },
+            }),
+            new Paragraph({
+              children: [new TextRun(ensureString(work.content.conclusion))],
+            }),
+
+            new Paragraph({ text: "", pageBreakBefore: true }),
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              children: [new TextRun({ text: "4. REFERÊNCIAS BIBLIOGRÁFICAS", bold: true })],
+              spacing: { after: 200 },
+            }),
+            new Paragraph({
+              children: [new TextRun(ensureString(work.content.references))],
+            }),
+          ],
+        },
+      ],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `${work.title.replace(/\s+/g, '_')}_AcadPDF.docx`);
+  };
+
   const shareWhatsApp = () => {
     if (!work) return;
     const text = `Confira meu trabalho académico gerado pelo AcadPDF AI: *${work.title}*. Ficou fenomenal!`;
@@ -173,6 +302,10 @@ export default function Preview() {
           <button onClick={generatePdf} className="btn btn-primary h-10 px-6">
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Baixar PDF Final</span>
+          </button>
+          <button onClick={generateDocx} className="btn btn-secondary h-10 px-4 border-white/5 bg-slate-800 hover:bg-slate-700">
+            <FileText className="w-4 h-4 text-blue-400" />
+            <span className="hidden sm:inline">Exportar DOCX</span>
           </button>
           <div className="h-6 w-[1px] bg-white/10 mx-2" />
           <button onClick={() => signOut()} className="p-2 text-slate-500 hover:text-red-400 transition-colors" title="Sair da Conta">
